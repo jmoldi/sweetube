@@ -11,15 +11,15 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [12.x]
+        node-version: [14]
 
     steps:
       - uses: actions/checkout@v1
 
-      - name: Node $
+      - name: Node 14
         uses: actions/setup-node@v1
         with:
-          node-version: $
+          node-version: ${{ matrix.node }}
 
       - name: npm install and npm run build
         run: |
