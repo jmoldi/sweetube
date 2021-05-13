@@ -1,0 +1,7 @@
+
+<mat-grid-list #grid cols="1" rowHeight="2:1">
+  <mat-grid-tile *ngFor="let content of contents">
+    <app-content-preview [content]="content"></app-content-preview>
+  </mat-grid-tile>
+</mat-grid-list>
+
