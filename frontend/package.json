@@ -9,7 +9,7 @@
     "lint": "ng lint",
     "e2e": "ng e2e",
     "build:ci": "ng build --prod --sourceMap=false --base-href /sweetube/",
-    "test:ci": "ng test --watch=false --code-coverage --source-map true"
+    "test:ci": "ng test --watch=false --browsers=ChromeHeadlessCustom --code-coverage --source-map true"
   },
   "private": true,
   "dependencies": {

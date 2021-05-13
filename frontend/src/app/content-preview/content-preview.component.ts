@@ -8,6 +8,7 @@ import {distinctUntilChanged, map} from "rxjs/operators";
   templateUrl: './content-preview.component.html',
   styleUrls: ['./content-preview.component.scss']
 })
+
 export class ContentPreviewComponent implements OnInit {
   @Input() content!: Content;
 

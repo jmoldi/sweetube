@@ -1,4 +1,4 @@
-<mat-card class="contentCard">
+<mat-card *ngIf="content !== undefined" class="contentCard">
   <mat-card-content class="cardContent">
     <img src="{{content.thumbnail}}" />
   </mat-card-content>
