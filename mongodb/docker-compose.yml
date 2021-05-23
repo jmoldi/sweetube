@@ -1,0 +1,10 @@
+services:
+  mongo:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: sweetubecon
+      MONGO_INITDB_ROOT_PASSWORD: sweetubecon
+      MONGO_INITDB_DATABASE: sweetubedb
+    ports:
+      - 27017:27017

@@ -1,9 +1,9 @@
 .contentCard {
   margin-bottom: 40px;
-  margin-left: 8px;
-  margin-right: 8px;
-  width: 344px;
-  height: 290px
+  margin-left: 0px;
+  margin-right: 0px;
+  max-width: 350px;
+  min-width: 350px;
 }
 
 .avatar {
@@ -22,6 +22,11 @@
 
 .cardContent{
   margin-bottom: 5px;
+  height: 80px;
+  img {
+    width: 100%;
+    height: 100%;
+  }
 }
 
 .contentSub{
@@ -30,4 +35,16 @@
 
 .contentTextBlock {
   margin-left: 5px;
+  height: 80px;
+}
+
+.contentTitle {
+  display: -webkit-box;
+  max-width: 100%;
+  -webkit-line-clamp: 2;
+  /* autoprefixer: off */
+  -webkit-box-orient: vertical;
+  /* autoprefixer: on */
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

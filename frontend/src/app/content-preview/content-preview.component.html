@@ -6,10 +6,12 @@
   <mat-card-title class="contentSub">
     <img src="{{content.creator.avatar}}" class="avatar">
     <div class="contentTextBlock">
-      <span>{{content.name}}{{content.name}}{{content.name}}{{content.name}}{{content.name}}</span>
-      <div >
+      <div class="contentTitle">
+        <span>{{content.name}}{{content.name}}{{content.name}}{{content.name}}{{content.name}}</span>
+      </div>
+      <div>
         <p class="contentText">{{content.creator.name}}</p>
-        <p class="contentText">{{content.views}} * {{content.createdAt | dateTimeToRelative}}</p>
+        <p class="contentText">{{content.views}} • {{content.createdAt | dateTimeToRelative}}</p>
       </div>
     </div>
   </mat-card-title>

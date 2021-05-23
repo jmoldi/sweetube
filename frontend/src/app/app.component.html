@@ -1,19 +1,25 @@
-<p>
-  <mat-toolbar color="primary">
-    <button mat-icon-button class="example-icon" aria-label="Example icon-button with menu icon">
-      <mat-icon>menu</mat-icon>
-    </button>
-    <span>{{title}}</span>
-    <span class="example-spacer"></span>
-    <button mat-icon-button class="example-icon favorite-icon" aria-label="Example icon-button with heart icon">
-      <mat-icon>favorite</mat-icon>
-    </button>
-    <button mat-icon-button class="example-icon" aria-label="Example icon-button with share icon">
-      <mat-icon>share</mat-icon>
-    </button>
-  </mat-toolbar>
-</p>
+<mat-toolbar color="primary">
+  <button mat-icon-button (click)="snav.toggle()" class="example-icon" aria-label="Example icon-button with menu icon">
+    <mat-icon>menu</mat-icon>
+  </button>
+  <span>{{title}}</span>
+  <span class="example-spacer"></span>
+  <button mat-raised-button class="example-icon" aria-label="Example icon-button with share icon">
+    <mat-icon>file_upload</mat-icon>
+    Create
+  </button>
+</mat-toolbar>
+
+<mat-sidenav-container>
+  <mat-sidenav #snav [mode]="mobileQuery.matches ? 'over' : 'side'"
+               [fixedInViewport]="mobileQuery.matches" fixedTopGap="56"
+              class="navigationList">
+      <a mat-list-item *ngFor="let nav of navigationLinks"  routerLink={{nav.url}}>{{nav.name}}</a>
+  </mat-sidenav>
+
+  <mat-sidenav-content style="min-height: 80vh">
+    <router-outlet></router-outlet>
+  </mat-sidenav-content>
+</mat-sidenav-container>
 
 
-
-<router-outlet></router-outlet>
