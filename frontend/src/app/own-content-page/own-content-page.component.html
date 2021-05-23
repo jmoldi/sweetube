@@ -1,0 +1,13 @@
+<h1>here is my own content</h1>
+<p>status {{status}}</p>
+<div [ngSwitch]="status">
+  <mat-icon *ngSwitchCase="0" color="accent">pending</mat-icon>
+  <mat-icon *ngSwitchCase="1" color="accent">sync</mat-icon>
+  <mat-icon *ngSwitchCase="2" color="primary">check</mat-icon>
+  <mat-icon *ngSwitchCase="3" color="warn">error</mat-icon>
+</div>
+<ul>
+  <li *ngFor="let content of contents">
+    <app-content-preview [content]="content" style="height: 100%"></app-content-preview>
+  </li>
+</ul>
