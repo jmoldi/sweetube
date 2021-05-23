@@ -1,12 +1,9 @@
 package de.js.backend.services;
 
-import de.js.backend.data.ContentFile;
+import com.madgag.gif.fmsware.AnimatedGifEncoder;
 import de.js.backend.data.VideoContent;
 import lombok.extern.slf4j.Slf4j;
-import org.bson.BsonBinarySubType;
-import org.bson.types.Binary;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
-import org.bytedeco.javacv.FFmpegLogCallback;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.FrameGrabber.Exception;
 import org.bytedeco.javacv.Java2DFrameConverter;
@@ -26,11 +23,8 @@ import javax.imageio.stream.ImageOutputStream;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -54,12 +48,13 @@ public class PreparationService {
 		log.info("thumbnail creation");
 		try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
 
-			Mono<VideoContent> thumnailProcess = DataBufferUtils
+			Mono<VideoContent> thumbnailProcess = DataBufferUtils
 					.write(buffer, byteArrayOutputStream)
 					.map(DataBufferUtils::release)
-					.then()
+					.doOnNext(s -> log.info("buffer video page"))
+					.collectList()
 					.flatMap(empty -> consume(byteArrayOutputStream.toByteArray(), videoContent, response));
-			return thumnailProcess;
+			return thumbnailProcess;
 
 		} catch (Exception e) {
 			log.error("thumnail creation error", e);
@@ -72,14 +67,22 @@ public class PreparationService {
 
 	private Mono<VideoContent> consume(byte[] array, VideoContent videoContent, ServerHttpResponse response) {
 		log.info("bytearray databuffer progress " + array.length);
-		var thumbnails = randomGrabberFFmpegImage(array, MOD);
+		byte[] thumbnail = getThumbnail(array);
 		DataBufferFactory dataBufferFactory = response.bufferFactory();
 
-		Flux<DataBuffer> result = DataBufferUtils
-				.readInputStream(() -> new ByteArrayInputStream(thumbnails.get(0)), dataBufferFactory, defaultBufferSize);
-		return this.gridFsTemplate.store(result, "thumbnail.png").map((objectId) -> {
+		Flux<DataBuffer> thumbnailBuffer = DataBufferUtils
+				.readInputStream(() -> new ByteArrayInputStream(thumbnail), dataBufferFactory, defaultBufferSize);
+		return this.gridFsTemplate.store(thumbnailBuffer, "thumbnail.png").map((objectId) -> {
 			videoContent.setThumbnailId(objectId.toHexString());
 			return videoContent;
+		}).flatMap(content -> {
+			byte[] preview = getPreview(array);
+			Flux<DataBuffer> previewBuffer = DataBufferUtils
+					.readInputStream(() -> new ByteArrayInputStream(preview), dataBufferFactory, defaultBufferSize);
+			return this.gridFsTemplate.store(previewBuffer, "preview.gif").map((objectId) -> {
+				videoContent.setPreviewId(objectId.toHexString());
+				return videoContent;
+			});
 		});
 	}
 
@@ -87,54 +90,130 @@ public class PreparationService {
 	 * Get video thumbnails
 	 *
 	 * @param bytes: video bytes
-	 * @param mod:   video length / mod gets the few frames
 	 * @throws Exception
 	 */
-	public static List<byte[]> randomGrabberFFmpegImage(byte[] bytes, int mod) {
+	public static byte[] getThumbnail(byte[] bytes) {
 		if (bytes.length == 0) {
 			throw new IllegalArgumentException("video bytes are empty");
 		}
-		List<byte[]> list = new ArrayList<>();
-		try (ByteArrayInputStream stream = new ByteArrayInputStream(bytes)) {
-			FFmpegFrameGrabber ff = new FFmpegFrameGrabber(stream); //.createDefault(filePath);
-			//tried to set this once bytes was empty
-			// FFmpegLogCallback.set();
-			ff.start();
-			int ffLength = ff.getLengthInFrames();
-			Frame f;
-			int i = 0;
-			int index = ffLength / mod;
-			while (i < ffLength) {
-				f = ff.grabImage();
-				if (i == index) {
+		try (ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
+		     FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(stream)) {
 
-					if (null == f || null == f.image) {
-						log.info("image not given, abort");
-						break;
-					}
-					Java2DFrameConverter converter = new Java2DFrameConverter();
-					BufferedImage bi = converter.getBufferedImage(f);
+			grabber.start();
+			int ffLength = grabber.getLengthInFrames();
+			Frame frame;
 
-					try (ByteArrayOutputStream baos = new ByteArrayOutputStream(defaultBufferSize);
-					     ImageOutputStream ios = ImageIO.createImageOutputStream(baos)) {
-						ImageIO.write(bi, IMAGEMAT, ios);
-						list.add(baos.toByteArray());
-					} catch (IOException e) {
-						log.error("write thumbnail", e);
-					}
-					break;
-				}
-				i++;
+			int targetFrameNumber = ffLength / MOD;
+			grabber.setFrameNumber(targetFrameNumber);
+			frame = grabber.grabImage();
+
+			if (null == frame || null == frame.image) {
+				log.info("image not given, abort");
+				return null;
 			}
-			ff.stop();
-			return list;
+			Java2DFrameConverter converter = new Java2DFrameConverter();
+			BufferedImage bufferedImage = converter.getBufferedImage(frame);
+
+			try (ByteArrayOutputStream baos = new ByteArrayOutputStream(defaultBufferSize);
+			     ImageOutputStream ios = ImageIO.createImageOutputStream(baos)) {
+				ImageIO.write(bufferedImage, IMAGEMAT, ios);
+				return baos.toByteArray();
+			} catch (IOException e) {
+				log.error("write thumbnail", e);
+			}
+
 		} catch (Exception ex) {
 			log.error("prepation", ex);
 		} catch (IOException ex) {
 			log.error("io prepation", ex);
 		}
-		return list;
+		return null;
 	}
+
+	public static byte[] getPreview(byte[] bytes) {
+
+		try (ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
+		     FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(stream);
+		     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();) {
+			grabber.start();
+			double framerate = grabber.getFrameRate();
+			int frames = grabber.getLengthInFrames();
+
+			// NOTE duration in ms instead of frame count
+			//long duration = grabber.getLengthInTime();
+
+			Map<Integer, Integer> slices = getSlices(frames);
+
+			Java2DFrameConverter converter = new Java2DFrameConverter();
+			AnimatedGifEncoder en = new AnimatedGifEncoder();
+			en.setFrameRate(Double.valueOf(framerate).floatValue());
+			en.start(outputStream);
+
+			for (Map.Entry<Integer,Integer> entry : slices.entrySet()){
+				int startFrame = entry.getKey().intValue();
+				grabber.setFrameNumber(startFrame);
+				int frameCount = entry.getValue().intValue();
+
+				for (int i = 0; i < frameCount; i++) {
+					en.addFrame(converter.convert(grabber.grab()));
+					grabber.setFrameNumber(grabber.getFrameNumber() + 1);
+				}
+			}
+
+			en.finish();
+
+			return outputStream.toByteArray();
+		} catch (java.lang.Exception ex) {
+			log.error("preview", ex);
+		}
+
+		return bytes;
+	}
+
+	private static Map<Integer, Integer> getSlices(int frames) {
+		Map<Integer, Integer> slices = new HashMap<>();
+		int maxSlices = 4;
+		int minimumFrame = 3;
+		int sliceDuration = 1500; // 1.5 sec
+		int sliceOffset = 500;
+		int totalSliceDuration = sliceDuration + sliceOffset;
+		int halfOffset = sliceOffset / 2;
+
+		if (frames + minimumFrame < sliceDuration) {
+			slices.put(minimumFrame, Long.valueOf(frames).intValue());
+			return slices;
+		}
+
+		long fits = frames / totalSliceDuration;
+		int framesPerSlice = frames / maxSlices;
+
+		if (fits * 3 > maxSlices) {
+			//high space
+
+			Random random = new Random();
+			for (int i = 0; i < maxSlices; i++) {
+				int startFrame = framesPerSlice * i + halfOffset;
+				int frame = pickFrame(random, startFrame, startFrame + framesPerSlice - sliceDuration);
+				slices.put(Integer.valueOf(frame), sliceDuration);
+			}
+		} else {
+			//low space
+
+			int postAddition = 0;
+			for (int i = 0; i < maxSlices; i++) {
+				int frame = framesPerSlice * i + halfOffset + postAddition;
+				slices.put(Integer.valueOf(frame), sliceDuration);
+				postAddition = halfOffset;
+			}
+		}
+
+		return slices;
+	}
+
+	private static int pickFrame(Random random, int min, int max) {
+		return random.nextInt((max - min) + 1) + min;
+	}
+
 
 	/**
 	 * Randomly generate random number sets based on video length

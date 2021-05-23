@@ -1,17 +1,13 @@
 package de.js.backend.services;
 
-import de.js.backend.data.ContentFile;
 import de.js.backend.data.VideoContent;
 import de.js.backend.repositories.VideoContentRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.bson.BsonBinarySubType;
-import org.bson.types.Binary;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.core.io.buffer.DataBufferFactory;
-import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.data.mongodb.gridfs.ReactiveGridFsResource;
 import org.springframework.data.mongodb.gridfs.ReactiveGridFsTemplate;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Service;
@@ -20,11 +16,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import javax.annotation.Resource;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 import static org.springframework.data.mongodb.core.query.Query.query;
@@ -65,7 +56,7 @@ public class VideoContentService {
 				.flatMapMany(r -> webExchange.getResponse().writeWith(r.getDownloadStream()));
 	}
 
-	public Mono<ReactiveGridFsResource> getContent(String id){
+	public Mono<ReactiveGridFsResource> getContent(String id) {
 		return this.gridFsTemplate.findOne(query(where("_id").is(id)))
 				.log()
 				.flatMap(gridFsTemplate::getResource);
@@ -79,16 +70,25 @@ public class VideoContentService {
 	 * @return
 	 */
 	public Mono<VideoContent> prepare(String id, ServerHttpResponse response) {
-		return videoContentRepository.findById(id).map(videoContent -> {
-			Flux<DataBuffer> buffer = getContent(videoContent.getContentId())
-					.flatMapMany(r -> r.getDownloadStream());
-			return prepare(buffer, videoContent, response);
+		return videoContentRepository.findById(id)
+				//.switchIfEmpty(emptyResponse(response))
+				.map(videoContent -> {
+					log.info("videocontent is null?" + (videoContent == null));
+					Flux<DataBuffer> buffer = getContent(videoContent.getContentId())
+							.flatMapMany(r -> r.getDownloadStream());
+					return prepare(buffer, videoContent, response);
 
-		}).flatMap(a->a);
+				}).flatMap(a -> a);
+	}
+
+	private Mono<? extends VideoContent> emptyResponse(ServerHttpResponse response) {
+		log.info("returning empty response 204");
+		response.setStatusCode(HttpStatus.NO_CONTENT);
+		return Mono.empty();
 	}
 
 
-	private Mono<VideoContent> prepare(Flux<DataBuffer> content,VideoContent videoContent, ServerHttpResponse response) {
+	private Mono<VideoContent> prepare(Flux<DataBuffer> content, VideoContent videoContent, ServerHttpResponse response) {
 		if (videoContent == null) {
 			throw new IllegalStateException("video not found");
 		}
