@@ -34,11 +34,17 @@ public class VideoContentService {
 	@Resource
 	ReactiveGridFsTemplate gridFsTemplate;
 
-	public Mono<VideoContent> create(FilePart filePart) {
+	public Mono<VideoContent> create(FilePart filePart, ServerHttpResponse response) {
 		return this.gridFsTemplate.store(filePart.content(), filePart.filename()).flatMap((id) -> {
 			VideoContent entity = new VideoContent();
 			entity.setContentId(id.toHexString());
 			return videoContentRepository.save(entity);
+		}).flatMap(videoContent -> {
+			// NOTE async
+			//prepareContent(videoContent.getId(), response).subscribe();
+
+			// return immediately
+			return prepareContent(videoContent.getId(), response);
 		});
 	}
 
@@ -69,16 +75,16 @@ public class VideoContentService {
 	 * @param id
 	 * @return
 	 */
-	public Mono<VideoContent> prepare(String id, ServerHttpResponse response) {
+	public Mono<VideoContent> prepareContent(String id, ServerHttpResponse response) {
+		log.info("preparing content " + id);
 		return videoContentRepository.findById(id)
-				//.switchIfEmpty(emptyResponse(response))
 				.map(videoContent -> {
-					log.info("videocontent is null?" + (videoContent == null));
 					Flux<DataBuffer> buffer = getContent(videoContent.getContentId())
 							.flatMapMany(r -> r.getDownloadStream());
-					return prepare(buffer, videoContent, response);
+					return prepareContent(buffer, videoContent, response);
 
-				}).flatMap(a -> a);
+				}).flatMap(a -> a)
+				.flatMap(videoContent -> videoContentRepository.save(videoContent));
 	}
 
 	private Mono<? extends VideoContent> emptyResponse(ServerHttpResponse response) {
@@ -87,8 +93,7 @@ public class VideoContentService {
 		return Mono.empty();
 	}
 
-
-	private Mono<VideoContent> prepare(Flux<DataBuffer> content, VideoContent videoContent, ServerHttpResponse response) {
+	private Mono<VideoContent> prepareContent(Flux<DataBuffer> content, VideoContent videoContent, ServerHttpResponse response) {
 		if (videoContent == null) {
 			throw new IllegalStateException("video not found");
 		}

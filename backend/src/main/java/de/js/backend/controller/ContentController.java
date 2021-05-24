@@ -3,10 +3,8 @@ package de.js.backend.controller;
 import de.js.backend.data.VideoContent;
 import de.js.backend.services.VideoContentService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.bind.annotation.*;
@@ -26,7 +24,7 @@ public class ContentController {
 
 	@PostMapping(value="/content", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public Flux<VideoContent> consumeVideoContent(@RequestPart("files") Flux<FilePart> file, ServerWebExchange webExchange){
-		return file.flatMap(filePart -> videoContentService.create(filePart))
+		return file.flatMap(filePart -> videoContentService.create(filePart, webExchange.getResponse()))
 				.switchIfEmpty(a -> emptyResponse(webExchange));
 	}
 
@@ -57,6 +55,6 @@ public class ContentController {
 
 	@GetMapping(value="/content/{id}/prepare")
 	public Mono<VideoContent> prepareVideo(@PathVariable String id, ServerHttpResponse response){
-		return videoContentService.prepare(id, response);
+		return videoContentService.prepareContent(id, response);
 	}
 }

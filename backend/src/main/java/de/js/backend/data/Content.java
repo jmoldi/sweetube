@@ -12,6 +12,7 @@ import org.bson.types.Binary;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
 
 import java.util.Date;
 
@@ -23,6 +24,7 @@ import java.util.Date;
 public abstract class Content {
 	@Id
 	String id;
+	String creatorId;
 	String name;
 	String contentId;
 	String thumbnailId;
@@ -31,6 +33,9 @@ public abstract class Content {
 	Long views;
 	@CreatedDate
 	Date createdAt;
+
+	@Transient
+	User creator;
 
 	@JsonProperty("hasContent")
 	public boolean hasContent() {
