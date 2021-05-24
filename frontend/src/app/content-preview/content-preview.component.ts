@@ -11,11 +11,20 @@ import {distinctUntilChanged, map} from "rxjs/operators";
 
 export class ContentPreviewComponent implements OnInit {
   @Input() content!: Content;
+  imgSrc: string | undefined;
 
   constructor() { }
 
   ngOnInit(): void {
+    this.mouseLeave();
   }
 
+  mouseEnter() {
+    this.imgSrc = "/api/content/"+this.content.previewId+"/stream";
+  }
+
+  mouseLeave() {
+    this.imgSrc = "/api/content/"+this.content.thumbnailId+"/stream";
+  }
 }
 

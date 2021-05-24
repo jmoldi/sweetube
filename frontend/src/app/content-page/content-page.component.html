@@ -1,0 +1,6 @@
+<div *ngIf="content !== undefined" class="contentWrapper">
+  <video controls width="600px" height="500px" autoplay
+         poster="{{content.thumbnailId | stream}}">
+    <source src="{{content.contentId | stream}}" type="video/mp4"/>
+  </video>
+</div>

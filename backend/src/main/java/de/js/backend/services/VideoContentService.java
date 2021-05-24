@@ -40,10 +40,6 @@ public class VideoContentService {
 			entity.setContentId(id.toHexString());
 			return videoContentRepository.save(entity);
 		}).flatMap(videoContent -> {
-			// NOTE async
-			//prepareContent(videoContent.getId(), response).subscribe();
-
-			// return immediately
 			return prepareContent(videoContent.getId(), response);
 		});
 	}
@@ -56,7 +52,6 @@ public class VideoContentService {
 		return videoContentRepository.findById(id);
 	}
 
-
 	public Flux<Void> stream(String id, ServerWebExchange webExchange) {
 		return getContent(id)
 				.flatMapMany(r -> webExchange.getResponse().writeWith(r.getDownloadStream()));
@@ -67,7 +62,6 @@ public class VideoContentService {
 				.log()
 				.flatMap(gridFsTemplate::getResource);
 	}
-
 
 	/**
 	 * prepare content with thumbnail and preview

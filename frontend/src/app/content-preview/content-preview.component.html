@@ -1,26 +1,23 @@
 <mat-card *ngIf="content !== undefined" class="contentCard">
   <mat-card-content class="cardContent">
-    <img src="{{content.thumbnail}}" />
+    <a routerLink="/v/{{content.id}}" [state]="{content:content}">
+    <img [src]="imgSrc"
+         (mouseover)="mouseEnter()"
+         (mouseout)="mouseLeave()">
+    </a>
   </mat-card-content>
 
   <mat-card-title class="contentSub">
     <img src="{{content.creator.avatar}}" class="avatar">
     <div class="contentTextBlock">
       <div class="contentTitle">
-        <span>{{content.name}}{{content.name}}{{content.name}}{{content.name}}{{content.name}}</span>
+        <span>{{content.name === null ? "Some Video Title" : content.name}}</span>
       </div>
       <div>
         <p class="contentText">{{content.creator.name}}</p>
-        <p class="contentText">{{content.views}} • {{content.createdAt | dateTimeToRelative}}</p>
+        <p class="contentText">{{content.views === null ? 0 : content.views}} • {{content.createdAt | dateTimeFromIso | dateTimeToRelative}}</p>
       </div>
     </div>
   </mat-card-title>
 
 </mat-card>
-
-<!--
-<video width="344px" height="193px"
-           poster="{{content.thumbnail}}">
-      <source src="{{content.url}}" type="video/mp4"/>
-    </video>
--->

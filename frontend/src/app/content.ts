@@ -4,16 +4,10 @@ import {DateTime} from "luxon";
 export interface Content {
   id: string;
   name: string;
-  content: {
-    url: string
-  };
-  thumbnail: {
-    url: string
-  };
-  preview: {
-    url: string
-  };
+  contentId: string;
+  thumbnailId: string;
+  previewId: string;
   creator: Creator;
   views: number;
-  createdAt: DateTime;
+  createdAt: string;
 }

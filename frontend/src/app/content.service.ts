@@ -7,11 +7,21 @@ import {HttpClient, HttpHeaders} from "@angular/common/http";
   providedIn: 'root'
 })
 export class ContentService {
-  private url = '/api/content/own';  // URL to web api
+  private urlOwn = '/api/content/own';  // URL to web api own content
+  private urlAll = '/api/content';  // URL to web api all content
+  private urlId = '/api/content';  // URL to web api all content
 
   constructor(private http: HttpClient) { }
 
   getOwnContent(): Observable<Content[]> {
-    return this.http.get<Content[]>(this.url);
+    return this.http.get<Content[]>(this.urlOwn);
+  }
+
+  getContent(): Observable<Content[]> {
+    return this.http.get<Content[]>(this.urlAll);
+  }
+
+  getContentById(id: String): Observable<Content> {
+    return this.http.get<Content>(this.urlId + `/${id}`);
   }
 }

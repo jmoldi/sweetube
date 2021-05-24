@@ -17,6 +17,10 @@ import {LuxonModule} from "luxon-angular";
 import { EmptyComponent } from './empty-component/empty.component';
 import { OwnContentPageComponent } from './own-content-page/own-content-page.component';
 import { HttpClientModule } from '@angular/common/http';
+import { ContentPageComponent } from './content-page/content-page.component';
+import {StreamPipe} from "./streamPipe";
+import { FileUploadComponent } from './file-upload/file-upload.component';
+import {MatProgressBarModule} from '@angular/material/progress-bar';
 
 @NgModule({
   declarations: [
@@ -24,7 +28,10 @@ import { HttpClientModule } from '@angular/common/http';
     ContentListComponent,
     ContentPreviewComponent,
     EmptyComponent,
-    OwnContentPageComponent
+    OwnContentPageComponent,
+    ContentPageComponent,
+    StreamPipe,
+    FileUploadComponent,
   ],
   imports: [
     BrowserModule,
@@ -37,6 +44,7 @@ import { HttpClientModule } from '@angular/common/http';
     MatSidenavModule,
     MatToolbarModule,
     MatCardModule,
+    MatProgressBarModule,
     MatGridListModule,
     LuxonModule,
   ],

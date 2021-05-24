@@ -284,24 +284,4 @@ public class PreparationService {
 		return fileSize;
 	}
 
-
-	/**
-	 * Randomly generate random number sets based on video length
-	 *
-	 * @param baseNum: the base number, here is the video length
-	 * @param length:  random number set length
-	 * @return: a collection of random numbers
-	 */
-	public static List<Integer> random(int baseNum, int length) {
-		List<Integer> list = new ArrayList<Integer>(length);
-		while (list.size() < length) {
-			Integer next = (int) (Math.random() * baseNum);
-			if (list.contains(next)) {
-				continue;
-			}
-			list.add(next);
-		}
-		Collections.sort(list);
-		return list;
-	}
 }

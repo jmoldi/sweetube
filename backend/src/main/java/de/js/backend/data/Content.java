@@ -13,9 +13,13 @@ import org.bson.types.ObjectId;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
+import org.springframework.data.annotation.Version;
+import org.springframework.data.domain.Persistable;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Date;
 
+@Document
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -29,13 +33,18 @@ public abstract class Content {
 	String contentId;
 	String thumbnailId;
 	String previewId;
-
-	Long views;
-	@CreatedDate
-	Date createdAt;
+	Long views = 0l;
+	Date createdAt = new Date();
 
 	@Transient
-	User creator;
+	@JsonProperty("creator")
+	public User getTempCreator(){
+		return User.builder()
+				.id("some")
+				.name("Elon")
+				.avatar("https://image.flaticon.com/icons/png/512/194/194938.png")
+				.build();
+	}
 
 	@JsonProperty("hasContent")
 	public boolean hasContent() {
