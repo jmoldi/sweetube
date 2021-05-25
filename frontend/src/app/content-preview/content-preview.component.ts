@@ -1,7 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {Content} from "../content";
-import {interval, Observable} from "rxjs";
-import {distinctUntilChanged, map} from "rxjs/operators";
 
 @Component({
   selector: 'app-content-preview',

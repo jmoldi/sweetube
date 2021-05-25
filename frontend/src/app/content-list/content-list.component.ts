@@ -1,7 +1,7 @@
 import {AfterViewInit,Component, OnInit, ViewChild} from '@angular/core';
 import { MediaChange, MediaObserver } from '@angular/flex-layout';
 import {MatGridList} from "@angular/material/grid-list";
-import {Subscription} from "rxjs";
+import {Observable, Subscription} from "rxjs";
 import {ContentService} from "../content.service";
 import {Content} from "../content";
 import {RequestStatus} from "../requestStatus";
@@ -12,7 +12,7 @@ import {RequestStatus} from "../requestStatus";
   styleUrls: ['./content-list.component.scss']
 })
 export class ContentListComponent implements OnInit {
-  contents!: Content[];
+  contents!: Observable<Content[]>;
   status: RequestStatus= RequestStatus.INITIAL;
   @ViewChild('grid') grid!: MatGridList;
   gridByBreakpoint: { [key: string]: number; } = {
@@ -49,7 +49,7 @@ export class ContentListComponent implements OnInit {
 
   getContent(): void {
 
-    this.contents=[];
+    /*this.contents=[];
     // Create observer object
     const myObserver = {
       next: (x: Content[]) => this.contents.push(...x),
@@ -63,7 +63,9 @@ export class ContentListComponent implements OnInit {
       },
     };
     this.status = RequestStatus.LOADING;
-    this.contentService.getContent().subscribe(myObserver);
+    this.contentService.getContent().subscribe(myObserver);*/
+
+    this.contents = this.contentService.getContent();
   }
 
 }

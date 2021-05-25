@@ -3,8 +3,11 @@
 }
 
 .navigationList{
-
   a{
     display: block;
+    width: 160px;
+    p{
+      padding-left: 16px;
+    }
   }
 }

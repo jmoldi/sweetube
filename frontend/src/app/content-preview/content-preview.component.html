@@ -1,21 +1,26 @@
 <mat-card *ngIf="content !== undefined" class="contentCard">
-  <mat-card-content class="cardContent">
-    <a routerLink="/v/{{content.id}}" [state]="{content:content}">
-    <img [src]="imgSrc"
-         (mouseover)="mouseEnter()"
-         (mouseout)="mouseLeave()">
-    </a>
-  </mat-card-content>
+  <a routerLink="/v/{{content.id}}" [state]="{content:content}">
+    <mat-card-content class="cardContent"
+                      (mouseover)="mouseEnter()"
+                      (mouseout)="mouseLeave()">
+      <img [src]="imgSrc"/>
+    </mat-card-content>
+  </a>
 
   <mat-card-title class="contentSub">
-    <img src="{{content.creator.avatar}}" class="avatar">
+    <a routerLink="{{'user/' + content.creator.id}}" [state]="{user:content.creator}">
+      <img src="{{content.creator.avatar}}" class="avatar">
+    </a>
     <div class="contentTextBlock">
       <div class="contentTitle">
         <span>{{content.name === null ? "Some Video Title" : content.name}}</span>
       </div>
       <div>
-        <p class="contentText">{{content.creator.name}}</p>
-        <p class="contentText">{{content.views === null ? 0 : content.views}} • {{content.createdAt | dateTimeFromIso | dateTimeToRelative}}</p>
+        <a routerLink="{{'user/' + content.creator.id}}" [state]="{user:content.creator}">
+          <p class="contentText">{{content.creator.name}}</p>
+        </a>
+        <p class="contentText">{{content.views === null ? 0 : content.views}}
+          • {{content.createdAt | dateTimeFromIso | dateTimeToRelative}}</p>
       </div>
     </div>
   </mat-card-title>
